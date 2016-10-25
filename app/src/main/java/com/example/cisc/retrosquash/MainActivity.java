@@ -103,6 +103,7 @@ public class MainActivity extends Activity {
         lives = 3;
 
     } // End onCreate
+
 class SquashCourtView extends SurfaceView implements Runnable {
 
     Thread ourThread = null;
@@ -248,14 +249,102 @@ class SquashCourtView extends SurfaceView implements Runnable {
             canvas = ourHolder.lockCanvas();
             //Paint paint = new Paint();
             canvas.drawColor(Color.BLACK); // the background
-            paint.setColor(Color.argb(255,255,255,255));
+            paint.setColor(Color.argb(255, 255, 255, 255));
             paint.setTextSize(45);
-            canvas.drawText("Score: "+score+" Lives: "+lives + " fps: "+fps,20,40,paint);
+            canvas.drawText("Score: " + score + " Lives: " + lives + " fps: " + fps, 20, 40, paint);
 
-            //Drew teh squash racket
-            canvas.drawRect(racket)
+            //Draw the squash racket
+            canvas.drawRect(racketPosition.x - (racketWidth / 2), racketPosition.y - (racketHeight / 2), racketPosition.x + (racketWidth / 2), racketPosition.y + racketHeight, paint);
+            // draw the ball
+            canvas.drawRect(ballPosition.x, ballPosition.y, ballPosition.x + ballWidth, ballPosition.y + ballWidth, paint);
+
+            ourHolder.unlockCanvasAndPost(canvas);
         }
-    }
+    } // End drawCourt()
+
+    public void controlFPS() {
+        long timeThisFrame = (System.currentTimeMillis() - lastFrameTime);
+        long timeToSleep = 15 - timeThisFrame;
+        if(timeThisFrame > 0 ) {
+            fps = (int) (1000/timeThisFrame);
+        }
+        if( timeToSleep > 0 ) {
+            try {
+                ourThread.sleep(timeToSleep);
+
+            }
+            catch (InterruptedException e) {
+                // Nothing here
+            }
+        }
+
+        lastFrameTime = System.currentTimeMillis();
+    } // End controlFPS
+
+    public void pause() {
+        playingSquash = false;
+        try {
+            ourThread.join();
+        }
+        catch (InterruptedException e) {
+            // Nothing here
+        }
+    } // End pause()
+
+    public void resume() {
+        playingSquash = true;
+        ourThread = new Thread(this);
+        ourThread.start();
+    } // End resume()
+
+    @Override
+    public boolean onTouchEvent( MotionEvent motionEvent) {
+        switch( motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+            case MotionEvent.ACTION_DOWN:
+                if( motionEvent.getX() >= screenWidth / 2) {
+                    racketIsMovingRight = true;
+                    racketIsMovingRight = false;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                racketIsMovingRight = false;
+                racketIsMovingLeft = false;
+                break;
+        } // End switch
+        return true;
+    } // End onTouchEvent
+
 } // End class SquashCourtView
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        while(true) {
+            squashCourtView.pause();
+            break;
+        }
+        finish();
+    } // end onStop()
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        squashCourtView.pause();
+    } // End onPause
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        squashCourtView.resume();
+    } // End onResume
+
+    public boolean onKeyDown( int keyCode, KeyEvent event) {
+        if( keyCode == KeyEvent.KEYCODE_BACK) {
+            squashCourtView.pause();
+            finish();
+            return true;
+        }
+        return false;
+    } // End onKeyDown
 
 } // End MainActivity
