@@ -104,36 +104,35 @@ public class MainActivity extends Activity {
 
     } // End onCreate
 
-class SquashCourtView extends SurfaceView implements Runnable {
+    class SquashCourtView extends SurfaceView implements Runnable {
+        Thread ourThread = null;
+        SurfaceHolder ourHolder;
+        volatile boolean playingSquash;
+        Paint paint;
 
-    Thread ourThread = null;
-    SurfaceHolder ourHolder;
-    volatile boolean playingSquash;
-    Paint paint;
+        public SquashCourtView(Context context) {
+            super(context);
+            ourHolder = getHolder();
+            paint = new Paint();
+            ballIsMovingDown = true;
 
-    public SquashCourtView(Context context) {
-        super(context);
-        ourHolder = getHolder();
-        paint = new Paint();
-        ballIsMovingDown = true;
-
-        //Send ball in random direction
-        Random randomNumber = new Random();
-        int ballDirection = randomNumber.nextInt(3);
-        switch( ballDirection) {
-            case 0:
-                ballIsMovingLeft = true;
-                ballIsMovingRight = false;
-                break;
-            case 1:
-                ballIsMovingLeft = false;
-                ballIsMovingRight = true;
-                break;
-            case 2:
-                ballIsMovingLeft = false;
-                ballIsMovingRight = false;
-                break;
-        } // End switch
+            //Send ball in random direction
+            Random randomNumber = new Random();
+            int ballDirection = randomNumber.nextInt(3);
+            switch( ballDirection) {
+                case 0:
+                    ballIsMovingLeft = true;
+                    ballIsMovingRight = false;
+                    break;
+                case 1:
+                    ballIsMovingLeft = false;
+                    ballIsMovingRight = true;
+                    break;
+                case 2:
+                    ballIsMovingLeft = false;
+                    ballIsMovingRight = false;
+                    break;
+            } // End switch
     } // End public SquashCourtView
 
     @Override
