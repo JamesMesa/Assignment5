@@ -136,12 +136,12 @@ public class MainActivity extends Activity {
     } // End public SquashCourtView
 
     @Override
-        public void run() {
-            while ( playingSquash) {
-                updateCourt();
-                drawCourt();
-                controlFPS();
-            }
+    public void run() {
+        while ( playingSquash) {
+            updateCourt();
+            drawCourt();
+            controlFPS();
+        }
     } // End public void run
 
     public void updateCourt() {
@@ -302,6 +302,9 @@ public class MainActivity extends Activity {
             case MotionEvent.ACTION_DOWN:
                 if( motionEvent.getX() >= screenWidth / 2) {
                     racketIsMovingRight = true;
+                    racketIsMovingLeft = false;
+                } else {
+                    racketIsMovingLeft = true;
                     racketIsMovingRight = false;
                 }
                 break;
