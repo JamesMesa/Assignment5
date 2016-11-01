@@ -16,6 +16,8 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
+
 import java.io.IOException;
 import java.util.Random;
 
@@ -25,19 +27,20 @@ public class MainActivity extends Activity {
     SquashCourtView squashCourtView;
 
     private SoundPool soundPool;
-    int sound1 = -1;
-    int sound2 = -1;
-    int sound3 = -1;
-    int sound4 = -1;
+    int soundNewBall    = -1;
+    int soundMissedBall = -1;
+    int soundBounceWall = -1;
+    int soundpaddle = -1;
+
 
     Display display;
     Point size;
     int screenWidth;
     int screenHeight;
 
-    int racketWidth;
-    int racketHeight;
-    Point racketPosition;
+    int racket1Width, racket1Height;
+    int racket2Width, racket2Height;
+    Point racket1Position,racket2Position;
     Point ballPosition;
     int ballWidth;
 
@@ -47,8 +50,8 @@ public class MainActivity extends Activity {
     boolean ballIsMovingUp;
     boolean ballIsMovingDown;
 
-    boolean racketIsMovingLeft;
-    boolean racketIsMovingRight;
+    boolean racket1IsMovingLeft, racket1IsMovingRight;
+    boolean racket2IsMovingLeft, racket2IsMovingRight;
 
     // stats
     long lastFrameTime;
@@ -68,19 +71,20 @@ public class MainActivity extends Activity {
             AssetManager assetManager = getAssets();
             AssetFileDescriptor descriptor;
 
-            descriptor = assetManager.openFd("blip1.wav");
-            sound1 = soundPool.load(descriptor, 0);
+            descriptor = assetManager.openFd("newball.wav");
+            soundNewBall = soundPool.load(descriptor, 0);
 
-            descriptor = assetManager.openFd("blip2.wav");
-            sound2 = soundPool.load(descriptor, 0);
+            descriptor = assetManager.openFd("missedball.wav");
+            soundMissedBall = soundPool.load(descriptor, 0);
 
-            descriptor = assetManager.openFd("blip3.wav");
-            sound3 = soundPool.load(descriptor, 0);
+            descriptor = assetManager.openFd("bouncewall.wav");
+            soundBounceWall = soundPool.load(descriptor, 0);
 
-            descriptor = assetManager.openFd("blip4.wav");
-            sound4 = soundPool.load(descriptor, 0);
+            descriptor = assetManager.openFd("paddle.wav");
+            soundpaddle = soundPool.load(descriptor, 0);
         } catch (IOException e) {
             // Maybe put toast to let user know something is not right
+            Toast.makeText(getApplicationContext(),"Trouble loading sounds.",Toast.LENGTH_LONG).show();
         }
         display = getWindowManager().getDefaultDisplay();
         size = new Point();
@@ -89,19 +93,27 @@ public class MainActivity extends Activity {
         screenHeight = size.y;
 
         //Game objects
-        racketPosition = new Point();
-        racketPosition.x = screenWidth/2;
-        racketPosition.y = screenHeight - 20;
-        racketWidth = screenWidth / 8;
-        racketHeight = 10;
+        racket1Position = new Point();
+        racket1Position.x = screenWidth/2;
+        racket1Position.y = screenHeight - 20;
+        racket1Width = screenWidth / 8;
+        racket1Height = 10;
+
+        racket2Position = new Point();
+        racket2Position.x = screenWidth/2;
+        racket2Position.y = 40;
+        racket2Width = screenWidth / 8;
+        racket2Height = 10;
+
 
         ballWidth = screenWidth / 35;
         ballPosition = new Point();
         ballPosition.x = screenWidth/2;
-        ballPosition.y = 1+ballWidth;
+        ballPosition.y = screenHeight/2;
+
+        soundPool.play(soundNewBall,1,1,0,0,1);
 
         lives = 3;
-
     } // End onCreate
 
     class SquashCourtView extends SurfaceView implements Runnable {
@@ -145,11 +157,19 @@ public class MainActivity extends Activity {
     } // End public void run
 
     public void updateCourt() {
-        if( racketIsMovingRight) {
-            racketPosition.x = racketPosition.x + 10;
+
+        // Update both racket positions
+        if( racket1IsMovingRight) {
+            racket1Position.x = racket1Position.x + 10;
         }
-        if( racketIsMovingLeft) {
-            racketPosition.x = racketPosition.x - 10;
+        if( racket1IsMovingLeft) {
+            racket1Position.x = racket1Position.x - 10;
+        }
+        if( racket2IsMovingRight) {
+            racket2Position.x = racket2Position.x + 10;
+        }
+        if( racket2IsMovingLeft) {
+            racket2Position.x = racket2Position.x - 10;
         }
 
         // Detect collisions
@@ -158,23 +178,33 @@ public class MainActivity extends Activity {
         if( ballPosition.x + ballWidth > screenWidth) {
             ballIsMovingLeft = true;
             ballIsMovingRight = false;
-            soundPool.play(sound1, 1,1,0,0,1);
+            soundPool.play(soundBounceWall, 1,1,0,0,1);
         }
         // hit left of screen
         if( ballPosition.x < 0) {
             ballIsMovingLeft = false;
             ballIsMovingRight = true;
-            soundPool.play(sound1, 1,1,0,0,1);
+            soundPool.play(soundBounceWall, 1,1,0,0,1);
         }
-        // hit bottom of screen
-        if( ballPosition.y > screenHeight - ballWidth) {
+        // hit bottom or top of screen
+        if(( ballPosition.y > screenHeight - ballWidth) ||
+           ( ballPosition.y < ballWidth) ) {
             lives = lives -1;
+            soundPool.play(soundMissedBall,1,1,0,0,1);
+/*
+            try {
+                ourThread.wait(250L);
+            }catch (InterruptedException e){
+                //Nothing here
+            }
+*/
+            soundPool.play(soundNewBall,1,1,0,0,1);
             if( lives == 0)  {
                 lives = 3;
                 score = 0;
-                soundPool.play(sound4,1,1,0,0,1);
             }
-            ballPosition.y = 1 + ballWidth; // back to top of screen
+            ballPosition.x = screenWidth/2;
+            ballPosition.y = screenHeight/2;
 
             // choose new ball direction
             Random randomNumber = new Random();
@@ -197,21 +227,14 @@ public class MainActivity extends Activity {
                     break;
 
             } // End switch
-
         } // End hit bottom of screen
-        // hit top of screen
-        if( ballPosition.y <= 0) {
-            ballIsMovingDown = true;
-            ballIsMovingUp = false;
-            ballPosition.y = 1;
-            soundPool.play(sound2,1,1,0,0,1);
-        }
 
+        // Update ball position
         if( ballIsMovingDown) {
-            ballPosition.y += 6;
+            ballPosition.y += 12;
         }
         if( ballIsMovingUp) {
-            ballPosition.y -= 10;
+            ballPosition.y -= 12;
         }
         if( ballIsMovingLeft) {
             ballPosition.x -= 12;
@@ -220,18 +243,18 @@ public class MainActivity extends Activity {
             ballPosition.x += 12;
         }
 
-        // hit racket
-        if( ballPosition.y + ballWidth >= (racketPosition.y - racketHeight/2)) {
-            int halfRacket = racketWidth / 2;
-            if( ballPosition.x + ballWidth > (racketPosition.x - halfRacket)
-             && ballPosition.x - ballWidth < (racketPosition.x + halfRacket)) {
+        // hit racket1 at bottom of screen
+        if( ballPosition.y + ballWidth >= (racket1Position.y - racket1Height/2)) {
+            int halfRacket1 = racket1Width / 2;
+            if( ballPosition.x + ballWidth > (racket1Position.x - halfRacket1)
+             && ballPosition.x - ballWidth < (racket1Position.x + halfRacket1)) {
              // rebound the ball vertically
-                soundPool.play(sound3,1,1,0,0,1);
+                soundPool.play(soundpaddle,1,1,0,0,(float)0.5);
                 score++;
                 ballIsMovingUp = true;
                 ballIsMovingDown = false;
                 //now decide how to rebound the ball horizontally
-                if( ballPosition.x > racketPosition.x) {
+                if( ballPosition.x > racket1Position.x) {
                     ballIsMovingRight = true;
                     ballIsMovingLeft = false;
                 }
@@ -240,7 +263,30 @@ public class MainActivity extends Activity {
                     ballIsMovingLeft = true;
                 }
             }
-        }
+        } // End hit racket1
+
+        // hit racket2
+        if( ballPosition.y - ballWidth <= (racket2Position.y + racket2Height/2)) {
+            int halfRacket2 = racket2Width / 2;
+            if( ballPosition.x + ballWidth > (racket2Position.x - halfRacket2)
+                    && ballPosition.x - ballWidth < (racket2Position.x + halfRacket2)) {
+                // rebound the ball vertically
+                soundPool.play(soundpaddle,1,1,0,0,(float)0.5);
+                score++;
+                ballIsMovingUp = false;
+                ballIsMovingDown = true;
+                //now decide how to rebound the ball horizontally
+                if( ballPosition.x > racket2Position.x) {
+                    ballIsMovingRight = true;
+                    ballIsMovingLeft = false;
+                }
+                else {
+                    ballIsMovingRight = false;
+                    ballIsMovingLeft = true;
+                }
+            }
+        } // End hit racket2
+
     } // End public void updateCourt
 
     public void drawCourt() {
@@ -252,10 +298,29 @@ public class MainActivity extends Activity {
             paint.setTextSize(45);
             canvas.drawText("Score: " + score + " Lives: " + lives + " fps: " + fps, 20, 40, paint);
 
-            //Draw the squash racket
-            canvas.drawRect(racketPosition.x - (racketWidth / 2), racketPosition.y - (racketHeight / 2), racketPosition.x + (racketWidth / 2), racketPosition.y + racketHeight, paint);
+            //Draw the squash racket1
+            paint.setColor(Color.argb(255, 25, 255, 255));
+            canvas.drawRect(racket1Position.x - (racket1Width / 2),  // Left
+                            racket1Position.y - (racket1Height / 2), // Top
+                            racket1Position.x + (racket1Width / 2),  // Right
+                            racket1Position.y +  racket1Height,      // Bottom
+                            paint);                                  // Bitmap
+
+            //Draw the squash racket2
+            paint.setColor(Color.argb(255, 255, 25, 255));
+            canvas.drawRect(racket2Position.x - (racket2Width / 2),
+                            racket2Position.y - (racket2Height / 2),
+                            racket2Position.x + (racket2Width / 2),
+                            racket2Position.y + racket2Height,
+                            paint);
+
             // draw the ball
-            canvas.drawRect(ballPosition.x, ballPosition.y, ballPosition.x + ballWidth, ballPosition.y + ballWidth, paint);
+            paint.setColor(Color.argb(255, 255, 255, 25));
+            canvas.drawRect(ballPosition.x,
+                            ballPosition.y,
+                            ballPosition.x + ballWidth,
+                            ballPosition.y + ballWidth,
+                            paint);
 
             ourHolder.unlockCanvasAndPost(canvas);
         }
@@ -296,21 +361,37 @@ public class MainActivity extends Activity {
         ourThread.start();
     } // End resume()
 
+    //Fixed racket1 control relative to the racket NOT the center of the screen
     @Override
     public boolean onTouchEvent( MotionEvent motionEvent) {
         switch( motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-            case MotionEvent.ACTION_DOWN:
-                if( motionEvent.getX() >= screenWidth / 2) {
-                    racketIsMovingRight = true;
-                    racketIsMovingLeft = false;
-                } else {
-                    racketIsMovingLeft = true;
-                    racketIsMovingRight = false;
+
+            case MotionEvent.ACTION_DOWN: // Start touching the screen
+                if( motionEvent.getY() >= screenHeight/2) { // Check for action of racket1
+                    if (motionEvent.getX() >= racket1Position.x + (racket1Width / 2)) {
+                        racket1IsMovingRight = true;
+                        racket1IsMovingLeft = false;
+                    } else {
+                        racket1IsMovingLeft = true;
+                        racket1IsMovingRight = false;
+                    }
+                }
+                else { // Check for action of racket2
+                    if (motionEvent.getX() >= racket2Position.x + (racket2Width / 2)) {
+                        racket2IsMovingRight = true;
+                        racket2IsMovingLeft = false;
+                    } else {
+                        racket2IsMovingLeft = true;
+                        racket2IsMovingRight = false;
+                    }
                 }
                 break;
-            case MotionEvent.ACTION_UP:
-                racketIsMovingRight = false;
-                racketIsMovingLeft = false;
+
+            case MotionEvent.ACTION_UP: // Stopped touching the screen
+                racket1IsMovingRight = false;
+                racket1IsMovingLeft = false;
+                racket2IsMovingRight = false;
+                racket2IsMovingLeft = false;
                 break;
         } // End switch
         return true;
