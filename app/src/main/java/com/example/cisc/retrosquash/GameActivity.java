@@ -122,7 +122,7 @@ public class GameActivity extends Activity {
             soundPool.play(soundNewBall, 1, 1, 0, 0, 1);
         }
         lives = 3;
-        Log.i("info","end of MainActivity.onCreate");
+        //Log.i("info","end of MainActivity.onCreate");
     } // End onCreate
 
     class SquashCourtView extends SurfaceView implements Runnable {
@@ -175,14 +175,20 @@ public class GameActivity extends Activity {
             if( racket1IsMovingLeft && racket1Position.x > 10+(racket1Width/2)) {
                 racket1Position.x = racket1Position.x - 10;
             }
-            // racket 2 (upper)
-            if( racket2IsMovingRight && racket2Position.x+(racket2Width/2) < (screenWidth-10)) {
-                racket2Position.x = racket2Position.x + 10;
-            }
-            if( racket2IsMovingLeft && racket2Position.x > 10+(racket2Width/2)) {
-                racket2Position.x = racket2Position.x - 10;
-            }
 
+            if( MainActivity.checkBoxObjectOnePlayer.isChecked()) {
+                //Single player, so racket 2 is automatically controlled
+                racket2Position.x = ballPosition.x;
+
+            }
+            else {// racket 2 (upper) Manual control
+                if (racket2IsMovingRight && racket2Position.x + (racket2Width / 2) < (screenWidth - 10)) {
+                    racket2Position.x = racket2Position.x + 10;
+                }
+                if (racket2IsMovingLeft && racket2Position.x > 10 + (racket2Width / 2)) {
+                    racket2Position.x = racket2Position.x - 10;
+                }
+            }
             // Detect collisions
 
             //hit right of screen
@@ -349,8 +355,11 @@ public class GameActivity extends Activity {
                 timeThisFrame = 400;  // Clip max time to 500 ms.
             }
             fps = (int) (1000/timeThisFrame); //divide by zero not allowed so no need to check
-            Log.i("info","timeThisFrame: "+timeThisFrame+" fps: "+fps);
+            //Log.i("info","timeThisFrame: "+timeThisFrame+" fps: "+fps);
             long timeToSleep = 15 - timeThisFrame; //15ms = 66fps
+            if( MainActivity.checkBoxObjectLimit.isChecked()) {
+                timeToSleep = 45 - timeThisFrame; // slow to 22 fps
+            }
 
             if( timeToSleep > 0 ) {
                 try {
@@ -386,6 +395,7 @@ public class GameActivity extends Activity {
             switch( motionEvent.getAction() & MotionEvent.ACTION_MASK) {
 
                 case MotionEvent.ACTION_DOWN: // Start touching the screen
+
                     if( motionEvent.getY() >= screenHeight/2) { // Check for action of racket1
                         if (motionEvent.getX() >= racket1Position.x + (racket1Width / 2)) {
                             racket1IsMovingRight = true;
