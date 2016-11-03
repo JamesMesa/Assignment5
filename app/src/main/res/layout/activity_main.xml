@@ -9,4 +9,59 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.cisc.retrosquash.MainActivity">
 
+    <TextView
+        android:text="2 Player Squash"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="41dp"
+        android:id="@+id/textView"
+        android:textSize="35sp" />
+
+
+    <CheckBox
+        android:text="Mute Sounds"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="46dp"
+        android:id="@+id/checkBoxMute"
+        android:textSize="20sp"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:textEditSuggestionItemLayout="@style/Base.TextAppearance.AppCompat" />
+
+    <CheckBox
+        android:text="One Player"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/checkBoxOnePlayer"
+        android:textSize="20sp"
+        android:textEditSuggestionItemLayout="@style/Base.TextAppearance.AppCompat"
+        android:layout_below="@+id/checkBoxLimit"
+        android:layout_alignLeft="@+id/checkBoxLimit"
+        android:layout_alignStart="@+id/checkBoxLimit" />
+
+    <Button
+        android:text="Play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonPlay"
+        android:textEditSuggestionItemLayout="@style/Base.TextAppearance.AppCompat"
+        android:textSize="20sp"
+        android:layout_marginTop="52dp"
+        android:layout_below="@+id/checkBoxOnePlayer"
+        android:layout_centerHorizontal="true" />
+
+    <CheckBox
+        android:text="Limit fps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/checkBoxLimit"
+        android:textSize="20sp"
+        android:textEditSuggestionItemLayout="@style/Base.TextAppearance.AppCompat"
+        android:layout_below="@+id/checkBoxMute"
+        android:layout_alignLeft="@+id/checkBoxMute"
+        android:layout_alignStart="@+id/checkBoxMute" />
+
 </RelativeLayout>
