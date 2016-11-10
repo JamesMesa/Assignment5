@@ -358,7 +358,7 @@ public class GameActivity extends Activity {
             //Log.i("info","timeThisFrame: "+timeThisFrame+" fps: "+fps);
             long timeToSleep = 15 - timeThisFrame; //15ms = 66fps
             if( MainActivity.checkBoxObjectLimit.isChecked()) {
-                timeToSleep = 45 - timeThisFrame; // slow to 22 fps
+                timeToSleep = 80 - timeThisFrame; // slow to 12.5 fps
             }
 
             if( timeToSleep > 0 ) {
